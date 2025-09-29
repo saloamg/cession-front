@@ -1,0 +1,27 @@
+[
+  {
+    "id": "demo-ced-1",
+    "nombre": "Financiera Andina",
+    "rut": "76.123.456-0",
+    "razon": "Financiera Andina SpA",
+    "direccion": "Av. Providencia 1234, Santiago",
+    "correo": "contacto@andina.cl",
+    "firmantes": [
+      "Mar\u00eda P\u00e9rez",
+      "Juan Gonz\u00e1lez"
+    ]
+  },
+  {
+    "id": "demo-ced-2",
+    "nombre": "Banco Regional",
+    "rut": "73.987.654-1",
+    "razon": "Banco Regional S.A.",
+    "direccion": "Av. Apoquindo 4567, Las Condes",
+    "correo": "operaciones@bregional.cl",
+    "firmantes": [
+      "Carolina Soto",
+      "Luis Herrera",
+      "Fernanda Mena"
+    ]
+  }
+]

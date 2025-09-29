@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,49 +10,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
+import { forkJoin } from 'rxjs';
 import { rutValidator } from '../shared/rut.validator';
 import { RutPipe } from '../shared/rut.pipe';
-
-type Cedente = {
-  id: string;
-  nombre: string;
-  rut: string;
-  razon: string;
-  direccion: string;
-  correo: string;
-  firmantes: string[];
-};
-
-type CesionarioPreset = {
-  id: string;
-  nombre: string;
-  rut: string;
-  razon: string;
-  direccion?: string;
-  correo?: string;
-};
-
-type CesionPayload = {
-  cedente: {
-    id: string;
-    firmante: string;
-  };
-  cesionario: {
-    presetId?: string;        // si no es \u201cOtro\u201d
-    rut?: string;             // si es \u201cOtro\u201d
-    razon?: string;           // si es \u201cOtro\u201d
-    direccion?: string;       // opcional
-    correo?: string;          // opcional
-  };
-  documentos: {
-    tipo: 'xml' | 'aec';
-    archivos: File[];
-  };
-};
+import { CesionesDataService, Cedente, CesionarioPreset, CesionPayload } from './cesiones-data.service';
 
 @Component({
   standalone: true,
-  imports: [
+  imports: [CommonModule, 
     ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
@@ -66,23 +32,24 @@ type CesionPayload = {
   ],
   template: `
   <div class="page">
-    <!-- Header simple -->
     <header class="header">
       <div class="brand"><mat-icon>trending_flat</mat-icon>&nbsp;Cesi\u00f3n gen\u00e9rica</div>
     </header>
 
-    <!-- Contenido -->
     <div class="container">
+      <div class="alert info" *ngIf="loadingData">Cargando cat\u00e1logos desde mock...</div>
+      <div class="alert error" *ngIf="!loadingData && dataError">{{ dataError }}</div>
+      <div class="alert success" *ngIf="submitSuccess">{{ submitSuccess }}</div>
+      <div class="alert error" *ngIf="submitError">{{ submitError }}</div>
+
       <form [formGroup]="form" (ngSubmit)="ceder()">
         <div class="grid">
-          <!-- Cedente -->
           <mat-card class="panel">
             <h2 class="panel-title">Cedente</h2>
 
-            <!-- Selector de cedente -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Cedente</mat-label>
-              <mat-select formControlName="cedenteId" (selectionChange)="onCedenteChange()">
+              <mat-select formControlName="cedenteId" (selectionChange)="onCedenteChange()" [disabled]="loadingData || !CEDENTES.length">
                 <mat-option *ngFor="let c of CEDENTES" [value]="c.id">{{ c.nombre }}</mat-option>
               </mat-select>
             </mat-form-field>
@@ -109,25 +76,23 @@ type CesionPayload = {
 
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Firmante</mat-label>
-              <mat-select formControlName="firmante" required>
+              <mat-select formControlName="firmante" [disabled]="loadingData || !firmantesDisponibles.length">
                 <mat-option *ngFor="let f of firmantesDisponibles" [value]="f">{{ f }}</mat-option>
               </mat-select>
             </mat-form-field>
           </mat-card>
 
-          <!-- Cesionario -->
           <mat-card class="panel">
             <h2 class="panel-title">Cesionario</h2>
 
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Cesionario</mat-label>
-              <mat-select formControlName="cesionarioPreset" (selectionChange)="onCesionarioChange()">
+              <mat-select formControlName="cesionarioPreset" (selectionChange)="onCesionarioChange()" [disabled]="loadingData">
                 <mat-option *ngFor="let cz of CESIONARIOS" [value]="cz.id">{{ cz.nombre }}</mat-option>
                 <mat-option value="otro">Otro</mat-option>
               </mat-select>
             </mat-form-field>
 
-            <!-- Cuando es \u201cOtro\u201d, habilitamos campos -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Rut</mat-label>
               <input matInput formControlName="ces_rut" [disabled]="!esCesionarioOtro" autocomplete="off">
@@ -151,17 +116,16 @@ type CesionPayload = {
           </mat-card>
         </div>
 
-        <!-- Documentos -->
         <mat-card class="panel doc-panel">
           <h2 class="panel-title">Documentos</h2>
 
           <div class="doc-row">
-            <mat-radio-group formControlName="doc_tipo" class="mr16">
+            <mat-radio-group formControlName="doc_tipo" class="mr16" [disabled]="loadingData">
               <mat-radio-button value="xml">Xmls</mat-radio-button>
               <mat-radio-button value="aec" class="ml16">Aecs</mat-radio-button>
             </mat-radio-group>
 
-            <button mat-stroked-button type="button" (click)="fileInput.click()">
+            <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="loadingData">
               <mat-icon>add</mat-icon>&nbsp;Agregar
             </button>
             <input #fileInput type="file" multiple (change)="onFilesSelected($event)" hidden>
@@ -178,10 +142,9 @@ type CesionPayload = {
           </div>
         </mat-card>
 
-        <!-- Bot\u00f3n Ceder -->
         <div class="footer">
-          <button mat-raised-button color="primary" [disabled]="!puedeCeder()" type="submit">
-            Ceder
+          <button mat-raised-button color="primary" [disabled]="!puedeCeder() || submitting" type="submit">
+            {{ submitting ? 'Enviando...' : 'Ceder' }}
           </button>
         </div>
       </form>
@@ -204,67 +167,75 @@ type CesionPayload = {
     .file-name{max-width:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .footer{display:flex;justify-content:flex-end;margin-top:16px;}
     .ml16{margin-left:16px}.mr16{margin-right:16px}
+    .alert{padding:12px 16px;border-radius:8px;margin-bottom:16px;border:1px solid transparent;font-size:0.95rem;}
+    .alert.info{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;}
+    .alert.error{background:#fef2f2;border-color:#fecaca;color:#b91c1c;}
+    .alert.success{background:#ecfdf5;border-color:#bbf7d0;color:#047857;}
   `]
 })
-export class CesionesPageComponent {
-  // --- Datos mock (reemplaza por API cuando tengas backend) ---
-  CEDENTES: Cedente[] = [
-    {
-      id: 'otro-ced',
-      nombre: 'Otro (demo)',
-      rut: '99999999-9',
-      razon: 'Empresa Demo SpA',
-      direccion: 'Av. Siempre Viva 123',
-      correo: 'contacto@demo.cl',
-      firmantes: ['Firmante 1', 'Firmante 2'],
-    },
-  ];
-
-  CESIONARIOS: CesionarioPreset[] = [
-    { id: 'banco-x', nombre: 'Banco X', rut: '76.543.210-9', razon: 'Banco X S.A.' },
-    { id: 'financiera-y', nombre: 'Financiera Y', rut: '65.432.100-1', razon: 'Financiera Y SpA' },
-  ];
-
-  // --- Estado UI / Form ---
+export class CesionesPageComponent implements OnInit {
+  CEDENTES: Cedente[] = [];
+  CESIONARIOS: CesionarioPreset[] = [];
   form: FormGroup;
-  esCesionarioOtro = false;
+  esCesionarioOtro = true;
   firmantesDisponibles: string[] = [];
   files: File[] = [];
+  loadingData = true;
+  dataError: string | null = null;
+  submitting = false;
+  submitError: string | null = null;
+  submitSuccess: string | null = null;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private dataService: CesionesDataService) {
     this.form = this.fb.group({
-      // Cedente
-      cedenteId: [this.CEDENTES[0].id, Validators.required],
+      cedenteId: ['', Validators.required],
       ced_rut: [{ value: '', disabled: true }],
       ced_razon: [{ value: '', disabled: true }],
       ced_direccion: [{ value: '', disabled: true }],
       ced_correo: [{ value: '', disabled: true }],
       firmante: ['', Validators.required],
-
-      // Cesionario
-      cesionarioPreset: ['otro', Validators.required], // default \u201cOtro\u201d
-      ces_rut: ['', [rutValidator]],                    // requerido solo cuando \u201cOtro\u201d
+      cesionarioPreset: ['otro', Validators.required],
+      ces_rut: ['', [rutValidator]],
       ces_razon: [''],
       ces_direccion: [''],
       ces_correo: ['', Validators.email],
-
-      // Documentos
       doc_tipo: ['xml', Validators.required],
     });
 
-    // Inicializa con el primer cedente
-    this.setCedente(this.CEDENTES[0]);
-    this.onCesionarioChange(); // configura validadores seg\u00fan \u201cOtro\u201d
+    this.onCesionarioChange();
   }
 
-  // --- Cedente ---
-  onCedenteChange() {
-    const id = this.form.get('cedenteId')!.value as string;
-    const ced = this.CEDENTES.find(c => c.id === id);
+  ngOnInit(): void {
+    forkJoin({
+      cedentes: this.dataService.getCedentes(),
+      cesionarios: this.dataService.getCesionarios(),
+    }).subscribe({
+      next: ({ cedentes, cesionarios }) => {
+        this.CEDENTES = cedentes;
+        this.CESIONARIOS = cesionarios;
+
+        if (cedentes.length) {
+          this.form.patchValue({ cedenteId: cedentes[0].id });
+          this.setCedente(cedentes[0]);
+        }
+
+        this.loadingData = false;
+      },
+      error: (error) => {
+        console.error('[Cesiones] Error cargando cat\u00e1logos', error);
+        this.dataError = 'No se pudieron cargar los cat\u00e1logos de referencia. Reintenta m\u00e1s tarde.';
+        this.loadingData = false;
+      },
+    });
+  }
+
+  onCedenteChange(): void {
+    const id = this.form.get('cedenteId')?.value as string;
+    const ced = this.CEDENTES.find((c) => c.id === id);
     if (ced) this.setCedente(ced);
   }
 
-  private setCedente(c: Cedente) {
+  private setCedente(c: Cedente): void {
     this.form.patchValue({
       ced_rut: c.rut,
       ced_razon: c.razon,
@@ -275,25 +246,24 @@ export class CesionesPageComponent {
     this.firmantesDisponibles = c.firmantes;
   }
 
-  // --- Cesionario ---
-  onCesionarioChange() {
-    const presetId = this.form.get('cesionarioPreset')!.value as string;
+  onCesionarioChange(): void {
+    const presetId = this.form.get('cesionarioPreset')?.value as string;
     this.esCesionarioOtro = presetId === 'otro';
 
-    const rutCtrl = this.form.get('ces_rut')!;
-    const razonCtrl = this.form.get('ces_razon')!;
-    const dirCtrl = this.form.get('ces_direccion')!;
-    const mailCtrl = this.form.get('ces_correo')!;
+    const rutCtrl = this.form.get('ces_rut');
+    const razonCtrl = this.form.get('ces_razon');
+    const dirCtrl = this.form.get('ces_direccion');
+    const mailCtrl = this.form.get('ces_correo');
+
+    if (!rutCtrl || !razonCtrl || !dirCtrl || !mailCtrl) return;
 
     if (this.esCesionarioOtro) {
-      // habilitar y hacer requeridos b\u00e1sicos
       rutCtrl.setValidators([rutValidator, Validators.required]);
       razonCtrl.setValidators([Validators.required]);
       rutCtrl.enable(); razonCtrl.enable(); dirCtrl.enable(); mailCtrl.enable();
       rutCtrl.reset(); razonCtrl.reset(); dirCtrl.reset(); mailCtrl.reset();
     } else {
-      // aplicar datos del preset y bloquear
-      const preset = this.CESIONARIOS.find(x => x.id === presetId);
+      const preset = this.CESIONARIOS.find((x) => x.id === presetId);
       rutCtrl.clearValidators(); razonCtrl.clearValidators();
       rutCtrl.disable(); razonCtrl.disable(); dirCtrl.disable(); mailCtrl.disable();
       this.form.patchValue({
@@ -308,33 +278,40 @@ export class CesionesPageComponent {
     razonCtrl.updateValueAndValidity();
   }
 
-  // --- Documentos ---
-  onFilesSelected(ev: Event) {
+  onFilesSelected(ev: Event): void {
     const input = ev.target as HTMLInputElement;
     if (!input.files?.length) return;
     this.files = [...this.files, ...Array.from(input.files)];
-    input.value = ''; // permite volver a seleccionar los mismos
+    input.value = '';
   }
-  removeFile(i: number) { this.files.splice(i, 1); this.files = [...this.files]; }
 
-  // --- Reglas de habilitaci\u00f3n del bot\u00f3n Ceder ---
+  removeFile(i: number): void {
+    this.files.splice(i, 1);
+    this.files = [...this.files];
+  }
+
   puedeCeder(): boolean {
+    if (this.loadingData) return false;
+
     const baseOk = this.form.valid && !!this.form.value.firmante;
     const docsOk = this.files.length > 0;
-    // si es \u201cOtro\u201d, exige rut + raz\u00f3n
+
     if (this.esCesionarioOtro) {
-      const rutOk = this.form.get('ces_rut')!.valid && !!this.form.get('ces_rut')!.value;
-      const razonOk = !!this.form.get('ces_razon')!.value;
-      return baseOk && docsOk && rutOk && razonOk;
+      const rutOk = this.form.get('ces_rut')?.valid && !!this.form.get('ces_rut')?.value;
+      const razonOk = !!this.form.get('ces_razon')?.value;
+      return baseOk && docsOk && !!rutOk && razonOk;
     }
     return baseOk && docsOk;
   }
 
-  // --- Submit ---
-  ceder() {
-    if (!this.puedeCeder()) return;
+  ceder(): void {
+    if (!this.puedeCeder() || this.submitting) return;
 
-    const ced = this.CEDENTES.find(c => c.id === this.form.value.cedenteId)!;
+    const ced = this.CEDENTES.find((c) => c.id === this.form.value.cedenteId);
+    if (!ced) {
+      this.submitError = 'Selecciona un cedente v\u00e1lido.';
+      return;
+    }
 
     const payload: CesionPayload = {
       cedente: {
@@ -343,10 +320,10 @@ export class CesionesPageComponent {
       },
       cesionario: this.esCesionarioOtro
         ? {
-            rut: this.form.value.ces_rut,
-            razon: this.form.value.ces_razon,
-            direccion: this.form.value.ces_direccion,
-            correo: this.form.value.ces_correo,
+            rut: this.form.get('ces_rut')?.value,
+            razon: this.form.get('ces_razon')?.value,
+            direccion: this.form.get('ces_direccion')?.value,
+            correo: this.form.get('ces_correo')?.value,
           }
         : { presetId: this.form.value.cesionarioPreset },
       documentos: {
@@ -355,8 +332,29 @@ export class CesionesPageComponent {
       },
     };
 
-    console.log('\u{1F539} Cesi\u00f3n lista para enviar:', payload);
-    // TODO: enviar a backend (FormData si incluyes archivos).
-    // this.api.crearCesion(payload).subscribe(...)
+    this.submitting = true;
+    this.submitError = null;
+    this.submitSuccess = null;
+
+    this.dataService.submitCesion(payload).subscribe({
+      next: () => {
+        this.submitSuccess = 'Cesi\u00f3n simulada correctamente (mock).';
+        this.files = [];
+        this.form.get('firmante')?.reset();
+        if (this.esCesionarioOtro) {
+          this.form.get('ces_rut')?.reset();
+          this.form.get('ces_razon')?.reset();
+          this.form.get('ces_direccion')?.reset();
+          this.form.get('ces_correo')?.reset();
+        }
+      },
+      error: (error) => {
+        console.error('[Cesiones] Error al simular env\u00edo', error);
+        this.submitError = 'No se pudo simular el env\u00edo de la cesi\u00f3n.';
+      },
+      complete: () => {
+        this.submitting = false;
+      },
+    });
   }
 }

@@ -4,6 +4,7 @@ import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
 
 type MfaDialogData = {
   step: 'CONFIRM_SIGN_IN_WITH_TOTP_CODE' | 'CONFIRM_SIGN_IN_WITH_SMS_CODE';
@@ -12,7 +13,7 @@ type MfaDialogData = {
 @Component({
   standalone: true,
   selector: 'app-mfa-dialog',
-  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule],
+  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, CommonModule],
   template: `
     <h2 mat-dialog-title>Verificaci\u00f3n MFA</h2>
     <form [formGroup]="form" mat-dialog-content class="form" (ngSubmit)="submit()">

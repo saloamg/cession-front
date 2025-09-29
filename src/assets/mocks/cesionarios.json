@@ -1,0 +1,26 @@
+[
+  {
+    "id": "banco-x",
+    "nombre": "Banco X",
+    "rut": "76.543.210-9",
+    "razon": "Banco X S.A.",
+    "direccion": "Av. Libertador 7890, Providencia",
+    "correo": "cesiones@bancox.cl"
+  },
+  {
+    "id": "financiera-y",
+    "nombre": "Financiera Y",
+    "rut": "65.432.100-1",
+    "razon": "Financiera Y SpA",
+    "direccion": "Los Militares 987, Las Condes",
+    "correo": "contacto@financieray.cl"
+  },
+  {
+    "id": "inversiones-z",
+    "nombre": "Inversiones Z",
+    "rut": "60.111.222-3",
+    "razon": "Inversiones Z Ltda.",
+    "direccion": "Cerro El Plomo 123, Santiago",
+    "correo": "negocios@invz.cl"
+  }
+]

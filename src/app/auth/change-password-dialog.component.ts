@@ -4,6 +4,7 @@ import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
 
 type ChangePasswordDialogData = {
   username: string;
@@ -12,7 +13,7 @@ type ChangePasswordDialogData = {
 @Component({
   standalone: true,
   selector: 'app-change-password-dialog',
-  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule],
+  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, CommonModule],
   template: `
     <h2 mat-dialog-title>Cambiar contrase\u00f1a</h2>
     <form [formGroup]="form" (ngSubmit)="submit()" mat-dialog-content class="form">
