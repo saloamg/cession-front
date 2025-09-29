@@ -15,7 +15,7 @@ import { MatCardModule } from '@angular/material/card';
       <div class="nav-inner">
         <div class="brand">
           <mat-icon>apartment</mat-icon>
-          <span>Cesiones Electrónicas</span>
+          <span>Cesiones Electr\u00f3nicas</span>
         </div>
         <div class="spacer"></div>
         <a mat-button routerLink="/registro">Hazte Cliente</a>
@@ -27,10 +27,10 @@ import { MatCardModule } from '@angular/material/card';
     <section class="hero">
       <div class="hero-inner">
         <h1>
-          Soluciones de <span class="grad">cesión electrónica</span> para empresas financieras
+          Soluciones de <span class="grad">cesi\u00f3n electr\u00f3nica</span> para empresas financieras
         </h1>
         <p class="lead">
-          Plataforma segura, eficiente y alineada a normativas para la gestión de cesiones de documentos electrónicos.<br>
+          Plataforma segura, eficiente y alineada a normativas para la gesti\u00f3n de cesiones de documentos electr\u00f3nicos.<br>
           Optimice sus procesos, reduzca riesgos y obtenga trazabilidad total.
         </p>
         <div class="cta">
@@ -51,7 +51,7 @@ import { MatCardModule } from '@angular/material/card';
           </div>
           <div>
             <mat-icon class="stat-ic">bolt</mat-icon>
-            <strong>Ágil</strong>
+            <strong>\u00c1gil</strong>
             <span>Onboarding en minutos</span>
           </div>
         </div>
@@ -66,28 +66,28 @@ import { MatCardModule } from '@angular/material/card';
           <mat-icon class="f-ic">cloud_upload</mat-icon>
           <h3>Carga Inteligente</h3>
           <p>
-            Suba documentos XML/AEC de forma masiva, con validación automática de formato, duplicados y tamaño.
+            Suba documentos XML/AEC de forma masiva, con validaci\u00f3n autom\u00e1tica de formato, duplicados y tama\u00f1o.
           </p>
         </mat-card>
         <mat-card class="feature">
           <mat-icon class="f-ic">security</mat-icon>
           <h3>Seguridad Avanzada</h3>
           <p>
-            Autenticación robusta, cifrado de datos y control de acceso por roles. Cumplimiento con estándares financieros.
+            Autenticaci\u00f3n robusta, cifrado de datos y control de acceso por roles. Cumplimiento con est\u00e1ndares financieros.
           </p>
         </mat-card>
         <mat-card class="feature">
           <mat-icon class="f-ic">gavel</mat-icon>
           <h3>Compliance</h3>
           <p>
-            Flujos alineados a SII y mejores prácticas de auditoría. Bitácora completa y exportable.
+            Flujos alineados a SII y mejores pr\u00e1cticas de auditor\u00eda. Bit\u00e1cora completa y exportable.
           </p>
         </mat-card>
         <mat-card class="feature">
           <mat-icon class="f-ic">insights</mat-icon>
           <h3>Trazabilidad Total</h3>
           <p>
-            Visualice el historial de cada cesión: quién, cuándo y qué se gestionó, con reportes descargables.
+            Visualice el historial de cada cesi\u00f3n: qui\u00e9n, cu\u00e1ndo y qu\u00e9 se gestion\u00f3, con reportes descargables.
           </p>
         </mat-card>
       </div>
@@ -95,7 +95,7 @@ import { MatCardModule } from '@angular/material/card';
 
     <!-- DYNAMIC STEPS -->
     <section class="section alt">
-      <h2 class="title">¿Cómo funciona?</h2>
+      <h2 class="title">\u00bfC\u00f3mo funciona?</h2>
       <div class="steps">
         <div class="step">
           <span class="num">1</span>
@@ -110,29 +110,29 @@ import { MatCardModule } from '@angular/material/card';
         <div class="step">
           <span class="num">3</span>
           <h4>Gestione</h4>
-          <p>Revise, confirme y genere la cesión. Obtenga respaldo y trazabilidad inmediata.</p>
+          <p>Revise, confirme y genere la cesi\u00f3n. Obtenga respaldo y trazabilidad inmediata.</p>
         </div>
       </div>
     </section>
 
     <!-- CLIENTS / TESTIMONIALS -->
     <section class="section">
-      <h2 class="title">Confían en nosotros</h2>
+      <h2 class="title">Conf\u00edan en nosotros</h2>
       <div class="grid">
         <mat-card class="quote">
           <p>
-            “La plataforma nos permitió automatizar la gestión de cesiones, cumpliendo con los más altos estándares del sector financiero.”
+            \u201cLa plataforma nos permiti\u00f3 automatizar la gesti\u00f3n de cesiones, cumpliendo con los m\u00e1s altos est\u00e1ndares del sector financiero.\u201d
           </p>
           <div class="who">
-            <mat-icon>account_circle</mat-icon> Gerente de Operaciones – Banco Regional
+            <mat-icon>account_circle</mat-icon> Gerente de Operaciones \u2013 Banco Regional
           </div>
         </mat-card>
         <mat-card class="quote">
           <p>
-            “La trazabilidad y la seguridad nos entregan tranquilidad frente a auditorías y reguladores.”
+            \u201cLa trazabilidad y la seguridad nos entregan tranquilidad frente a auditor\u00edas y reguladores.\u201d
           </p>
           <div class="who">
-            <mat-icon>account_circle</mat-icon> Jefa de Cumplimiento – Financiera Andes
+            <mat-icon>account_circle</mat-icon> Jefa de Cumplimiento \u2013 Financiera Andes
           </div>
         </mat-card>
       </div>
@@ -140,9 +140,9 @@ import { MatCardModule } from '@angular/material/card';
 
     <!-- CTA FINAL -->
     <section class="cta-bottom">
-      <h2>Solicite una demostración</h2>
+      <h2>Solicite una demostraci\u00f3n</h2>
       <p>
-        Descubra cómo optimizar la gestión de cesiones electrónicas en su empresa.<br>
+        Descubra c\u00f3mo optimizar la gesti\u00f3n de cesiones electr\u00f3nicas en su empresa.<br>
         Pruebe la plataforma o agende una demo personalizada.
       </p>
       <div class="cta">
@@ -154,9 +154,9 @@ import { MatCardModule } from '@angular/material/card';
     <!-- FOOTER -->
     <footer class="footer">
       <div class="foot-inner">
-        <span>© {{year}} Cesiones Electrónicas • v1.0</span>
+        <span>\u00a9 {{year}} Cesiones Electr\u00f3nicas \u2022 v1.0</span>
         <span class="links">
-          <a href="#" (click)="$event.preventDefault()">Términos</a>
+          <a href="#" (click)="$event.preventDefault()">T\u00e9rminos</a>
           <a href="#" (click)="$event.preventDefault()">Privacidad</a>
         </span>
       </div>

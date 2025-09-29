@@ -76,19 +76,19 @@ import { signUp } from 'aws-amplify/auth';
         </mat-form-field>
 
         <mat-form-field appearance="outline" style="width:100%;margin-bottom:18px;">
-          <mat-label>Razón Social</mat-label>
+          <mat-label>Raz\u00f3n Social</mat-label>
           <input matInput formControlName="razonSocial" autocomplete="off" [disabled]="loading">
           <mat-icon matPrefix style="color:#1e90ff;">business</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline" style="width:100%;margin-bottom:18px;">
-          <mat-label>Correo electrónico</mat-label>
+          <mat-label>Correo electr\u00f3nico</mat-label>
           <input matInput type="email" formControlName="email" autocomplete="email" [disabled]="loading">
           <mat-icon matPrefix style="color:#1e90ff;">mail</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline" style="width:100%;margin-bottom:18px;">
-          <mat-label>Contraseña</mat-label>
+          <mat-label>Contrase\u00f1a</mat-label>
           <input matInput type="password" formControlName="password" autocomplete="new-password" [disabled]="loading">
           <mat-icon matPrefix style="color:#1e90ff;">vpn_key</mat-icon>
         </mat-form-field>
@@ -146,10 +146,10 @@ export class RegisterComponent {
         }
       });
 
-      console.log('✅ Registro exitoso:', result);
+      console.log('\u2705 Registro exitoso:', result);
       alert('Registro exitoso. Revisa tu correo para confirmar la cuenta.');
     } catch (error) {
-      console.error('❌ Error al registrar:', error);
+      console.error('\u274c Error al registrar:', error);
       alert('Hubo un problema al registrar la empresa.');
     } finally {
       this.loading = false;

@@ -5,12 +5,16 @@ import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { signIn, confirmSignIn, fetchAuthSession, getCurrentUser } from 'aws-amplify/auth';
+import { firstValueFrom } from 'rxjs';
+import { ChangePasswordDialogComponent } from './change-password-dialog.component';
+import { MfaDialogComponent } from './mfa-dialog.component';
 
 @Component({
   standalone: true,
   selector: 'app-login',
-  imports: [ReactiveFormsModule, MatCardModule, MatInputModule, MatButtonModule, MatIconModule],
+  imports: [ReactiveFormsModule, MatCardModule, MatInputModule, MatButtonModule, MatIconModule, MatDialogModule],
   template: `
   <div
     style="
@@ -67,7 +71,7 @@ import { signIn, confirmSignIn, fetchAuthSession, getCurrentUser } from 'aws-amp
         </mat-form-field>
 
         <mat-form-field appearance="outline" style="width:100%;margin-bottom:10px;">
-          <mat-label>Contraseña</mat-label>
+          <mat-label>Contrase\u00f1a</mat-label>
           <input matInput type="password" formControlName="password" autocomplete="current-password" [disabled]="loading">
           <mat-icon matPrefix style="color:#1e90ff;">vpn_key</mat-icon>
         </mat-form-field>
@@ -82,7 +86,7 @@ import { signIn, confirmSignIn, fetchAuthSession, getCurrentUser } from 'aws-amp
             [disabled]="loading"
           >
             <mat-icon style="font-size:18px;margin-right:4px;">help_outline</mat-icon>
-            ¿Olvidaste tu contraseña?
+            \u00bfOlvidaste tu contrase\u00f1a?
           </button>
           <span style="font-size:0.95rem;color:#888;">&nbsp;</span>
         </div>
@@ -103,7 +107,7 @@ import { signIn, confirmSignIn, fetchAuthSession, getCurrentUser } from 'aws-amp
             transition:background 0.2s;
           "
         >
-          <mat-icon>login</mat-icon>&nbsp;{{ loading ? 'Ingresando…' : 'Entrar' }}
+          <mat-icon>login</mat-icon>&nbsp;{{ loading ? 'Ingresando\u2026' : 'Entrar' }}
         </button>
 
         <div *ngIf="error" style="color:#c00;margin-top:14px;font-weight:500;text-align:center;">
@@ -140,7 +144,7 @@ export class LoginComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  constructor(private fb: FormBuilder, private router: Router) {}
+  constructor(private fb: FormBuilder, private router: Router, private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -149,7 +153,7 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  async onLogin() {
+  async onLogin(): Promise<void> {
     console.log('[Login] click; form.valid=', this.form.valid, this.form.value);
 
     if (this.loading) return;
@@ -159,20 +163,10 @@ export class LoginComponent implements OnInit {
     const { username, password } = this.form.value as { username: string; password: string };
 
     try {
-      const res = await signIn({ username, password });
-      console.log('[signIn] nextStep:', (res as any)?.nextStep);
+      let result = await signIn({ username, password });
+      console.log('[signIn] nextStep:', (result as any)?.nextStep);
 
-      const step = (res as any)?.nextStep?.signInStep;
-      if (step === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD') {
-        const newPass = prompt('Debes cambiar tu contraseña. Ingresa una nueva:') || '';
-        if (!newPass) throw new Error('Nueva contraseña requerida');
-        await confirmSignIn({ challengeResponse: newPass });
-      }
-      if (step === 'CONFIRM_SIGN_IN_WITH_TOTP_CODE' || step === 'CONFIRM_SIGN_IN_WITH_SMS_CODE') {
-        const code = prompt('Ingresa el código MFA:') || '';
-        if (!code) throw new Error('Código MFA requerido');
-        await confirmSignIn({ challengeResponse: code });
-      }
+      result = await this.resolveAdditionalChallenges(result, username);
 
       const session = await fetchAuthSession();
       console.log('[session tokens]', session.tokens);
@@ -181,19 +175,69 @@ export class LoginComponent implements OnInit {
       this.router.navigate(['/cesiones']);
     } catch (e: any) {
       console.error('[Login] error:', e);
-      this.error = e?.message ?? 'No se pudo iniciar sesión';
+      this.error = e?.message ?? 'No se pudo iniciar sesi\u00f3n';
     } finally {
       this.loading = false;
     }
   }
 
-  onForgotPassword() {
-    // Aquí podrías redirigir a una página de recuperación o mostrar un modal
+  onForgotPassword(): void {
+    // Aqu\u00ed podr\u00edas redirigir a una p\u00e1gina de recuperaci\u00f3n o mostrar un modal
     // Por ahora, solo mostramos un prompt para el email
-    const email = prompt('Ingresa tu email para recuperar la contraseña:');
+    const email = prompt('Ingresa tu email para recuperar la contrase\u00f1a:');
     if (email) {
-      // Aquí podrías llamar a la función de recuperación de AWS Cognito
-      alert('Si el email está registrado, recibirás instrucciones para recuperar tu contraseña.');
+      // Aqu\u00ed podr\u00edas llamar a la funci\u00f3n de recuperaci\u00f3n de AWS Cognito
+      alert('Si el email est\u00e1 registrado, recibir\u00e1s instrucciones para recuperar tu contrase\u00f1a.');
     }
+  }
+
+  private async resolveAdditionalChallenges(result: any, username: string): Promise<any> {
+    let current = result;
+    let step = current?.nextStep?.signInStep as string | undefined;
+
+    while (step && !this.isSignInCompleted(step)) {
+      if (step === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD') {
+        const password = await this.promptForNewPassword(username);
+        current = await confirmSignIn({ challengeResponse: password });
+      } else if (step === 'CONFIRM_SIGN_IN_WITH_TOTP_CODE' || step === 'CONFIRM_SIGN_IN_WITH_SMS_CODE') {
+        const code = await this.promptForMfa(step);
+        current = await confirmSignIn({ challengeResponse: code });
+      } else {
+        console.warn('[Login] Paso de autenticaci\u00f3n no manejado:', step);
+        break;
+      }
+
+      step = current?.nextStep?.signInStep as string | undefined;
+    }
+
+    return current;
+  }
+
+  private isSignInCompleted(step: string): boolean {
+    return step === 'DONE' || step === 'COMPLETE_SIGN_IN' || step === 'COMPLETE';
+  }
+
+  private async promptForNewPassword(username: string): Promise<string> {
+    const dialogRef = this.dialog.open(ChangePasswordDialogComponent, {
+      disableClose: true,
+      data: { username },
+    });
+    const value = await firstValueFrom(dialogRef.afterClosed());
+    if (!value) {
+      throw new Error('Cambio de contrase\u00f1a cancelado');
+    }
+    return value;
+  }
+
+  private async promptForMfa(step: 'CONFIRM_SIGN_IN_WITH_TOTP_CODE' | 'CONFIRM_SIGN_IN_WITH_SMS_CODE'): Promise<string> {
+    const dialogRef = this.dialog.open(MfaDialogComponent, {
+      disableClose: true,
+      data: { step },
+    });
+    const value = await firstValueFrom(dialogRef.afterClosed());
+    if (!value) {
+      throw new Error('Verificaci\u00f3n MFA cancelada');
+    }
+    return value;
   }
 }

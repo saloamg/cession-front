@@ -37,9 +37,9 @@ type CesionPayload = {
     firmante: string;
   };
   cesionario: {
-    presetId?: string;        // si no es “Otro”
-    rut?: string;             // si es “Otro”
-    razon?: string;           // si es “Otro”
+    presetId?: string;        // si no es \u201cOtro\u201d
+    rut?: string;             // si es \u201cOtro\u201d
+    razon?: string;           // si es \u201cOtro\u201d
     direccion?: string;       // opcional
     correo?: string;          // opcional
   };
@@ -68,7 +68,7 @@ type CesionPayload = {
   <div class="page">
     <!-- Header simple -->
     <header class="header">
-      <div class="brand"><mat-icon>trending_flat</mat-icon>&nbsp;Cesión genérica</div>
+      <div class="brand"><mat-icon>trending_flat</mat-icon>&nbsp;Cesi\u00f3n gen\u00e9rica</div>
     </header>
 
     <!-- Contenido -->
@@ -93,12 +93,12 @@ type CesionPayload = {
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Razón social</mat-label>
+              <mat-label>Raz\u00f3n social</mat-label>
               <input matInput formControlName="ced_razon" [disabled]="true">
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Dirección</mat-label>
+              <mat-label>Direcci\u00f3n</mat-label>
               <input matInput formControlName="ced_direccion" [disabled]="true">
             </mat-form-field>
 
@@ -127,20 +127,20 @@ type CesionPayload = {
               </mat-select>
             </mat-form-field>
 
-            <!-- Cuando es “Otro”, habilitamos campos -->
+            <!-- Cuando es \u201cOtro\u201d, habilitamos campos -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Rut</mat-label>
               <input matInput formControlName="ces_rut" [disabled]="!esCesionarioOtro" autocomplete="off">
-              <mat-error *ngIf="form.get('ces_rut')?.invalid && esCesionarioOtro">RUT inválido</mat-error>
+              <mat-error *ngIf="form.get('ces_rut')?.invalid && esCesionarioOtro">RUT inv\u00e1lido</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Razón social</mat-label>
+              <mat-label>Raz\u00f3n social</mat-label>
               <input matInput formControlName="ces_razon" [disabled]="!esCesionarioOtro" autocomplete="off">
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Dirección</mat-label>
+              <mat-label>Direcci\u00f3n</mat-label>
               <input matInput formControlName="ces_direccion" [disabled]="!esCesionarioOtro" autocomplete="off">
             </mat-form-field>
 
@@ -178,7 +178,7 @@ type CesionPayload = {
           </div>
         </mat-card>
 
-        <!-- Botón Ceder -->
+        <!-- Bot\u00f3n Ceder -->
         <div class="footer">
           <button mat-raised-button color="primary" [disabled]="!puedeCeder()" type="submit">
             Ceder
@@ -242,8 +242,8 @@ export class CesionesPageComponent {
       firmante: ['', Validators.required],
 
       // Cesionario
-      cesionarioPreset: ['otro', Validators.required], // default “Otro”
-      ces_rut: ['', [rutValidator]],                    // requerido solo cuando “Otro”
+      cesionarioPreset: ['otro', Validators.required], // default \u201cOtro\u201d
+      ces_rut: ['', [rutValidator]],                    // requerido solo cuando \u201cOtro\u201d
       ces_razon: [''],
       ces_direccion: [''],
       ces_correo: ['', Validators.email],
@@ -254,7 +254,7 @@ export class CesionesPageComponent {
 
     // Inicializa con el primer cedente
     this.setCedente(this.CEDENTES[0]);
-    this.onCesionarioChange(); // configura validadores según “Otro”
+    this.onCesionarioChange(); // configura validadores seg\u00fan \u201cOtro\u201d
   }
 
   // --- Cedente ---
@@ -286,7 +286,7 @@ export class CesionesPageComponent {
     const mailCtrl = this.form.get('ces_correo')!;
 
     if (this.esCesionarioOtro) {
-      // habilitar y hacer requeridos básicos
+      // habilitar y hacer requeridos b\u00e1sicos
       rutCtrl.setValidators([rutValidator, Validators.required]);
       razonCtrl.setValidators([Validators.required]);
       rutCtrl.enable(); razonCtrl.enable(); dirCtrl.enable(); mailCtrl.enable();
@@ -317,11 +317,11 @@ export class CesionesPageComponent {
   }
   removeFile(i: number) { this.files.splice(i, 1); this.files = [...this.files]; }
 
-  // --- Reglas de habilitación del botón Ceder ---
+  // --- Reglas de habilitaci\u00f3n del bot\u00f3n Ceder ---
   puedeCeder(): boolean {
     const baseOk = this.form.valid && !!this.form.value.firmante;
     const docsOk = this.files.length > 0;
-    // si es “Otro”, exige rut + razón
+    // si es \u201cOtro\u201d, exige rut + raz\u00f3n
     if (this.esCesionarioOtro) {
       const rutOk = this.form.get('ces_rut')!.valid && !!this.form.get('ces_rut')!.value;
       const razonOk = !!this.form.get('ces_razon')!.value;
@@ -355,7 +355,7 @@ export class CesionesPageComponent {
       },
     };
 
-    console.log('🔹 Cesión lista para enviar:', payload);
+    console.log('\u{1F539} Cesi\u00f3n lista para enviar:', payload);
     // TODO: enviar a backend (FormData si incluyes archivos).
     // this.api.crearCesion(payload).subscribe(...)
   }
